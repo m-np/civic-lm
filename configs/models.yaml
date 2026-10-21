@@ -1,0 +1,40 @@
+# Open-weight models only (they can be fine-tuned later). Revisions are pinned.
+# backend: hf (transformers, CPU or GPU) | vllm (GPU) | ollama (local GGUF, CPU-friendly)
+models:
+  qwen2.5-1.5b:
+    backend: hf
+    model: Qwen/Qwen2.5-1.5B-Instruct
+    revision: 989aa7980e4cf806f80c7fef2b1adb7bc71aa306
+    license: apache-2.0
+    note: small enough for CPU smoke runs
+  qwen2.5-7b:
+    backend: vllm
+    model: Qwen/Qwen2.5-7B-Instruct
+    revision: a09a35458c702b33eeacc393d103063234e8bc28
+    license: apache-2.0
+  mistral-7b:
+    backend: vllm
+    model: mistralai/Mistral-7B-Instruct-v0.3
+    revision: c170c708c41dac9275d15a8fff4eca08d52bab71
+    license: apache-2.0
+  llama3.1-8b:
+    backend: vllm
+    model: meta-llama/Llama-3.1-8B-Instruct     # gated: accept the license on HF first
+    revision: 0e9e39f249a16976918f6564b8830bc894c89659
+    license: llama3.1
+  llama3.1-8b-q4:
+    backend: ollama
+    model: llama3.1:8b                           # same weights, 4-bit GGUF; CPU baseline only
+    license: llama3.1
+    note: quantized; not directly comparable to the bf16 runs
+  # Larger open model as the upper reference (GPU, e.g. 2x A100 80GB or AWQ on one GPU):
+  qwen2.5-72b:
+    backend: vllm
+    model: Qwen/Qwen2.5-72B-Instruct
+    revision: null                               # pin before the v1 runs
+    license: qwen
+
+generation:
+  temperature: 0.0      # greedy
+  seed: 0
+  max_new_tokens: 384

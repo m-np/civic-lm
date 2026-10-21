@@ -33,3 +33,22 @@ test:
 lint:
 	ruff check .
 	lint-imports
+
+# ---------------------------------------------------------------- benchmark + eval
+RELEASE ?= sample
+MODEL ?= qwen2.5-1.5b
+TIER ?= engineered
+
+.PHONY: bench run score report
+bench:           ## stage 4-5: build a release from data/processed -> bench/releases/$(RELEASE)
+	$(PY) -m civic_bench.build --name $(RELEASE)
+
+run:             ## one model x tier over the release (resumable)
+	HF_HUB_DISABLE_IMPLICIT_TOKEN=$${HF_HUB_DISABLE_IMPLICIT_TOKEN:-0} \
+	$(PY) -m civic_eval.run --release bench/releases/$(RELEASE) --model $(MODEL) --tier $(TIER)
+
+score:
+	$(PY) -m civic_eval.score eval/runs/$(RELEASE)/$(MODEL)__$(TIER)
+
+report:          ## table of every scored run of the release -> eval/runs/$(RELEASE)/REPORT.md
+	$(PY) -m civic_eval.report --release $(RELEASE)

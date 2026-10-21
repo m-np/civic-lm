@@ -32,6 +32,20 @@ correct current answer is that the provision no longer applies.
 Control: every `outdated_plus_current` item has a sibling grounded_qa item (current version
 only), so "always warn" is penalized.
 
+## How the model can tell
+Every passage in every task is rendered with the period it was in force, for example
+"in force from 2024-10-15 until 2026-02-04" or "in force from 2020-06-22, no end date recorded"
+(from `passage_validity.json`). The question names the date it asks about. Detecting
+supersession is then objective: compare the dates. Current passages in other tasks carry the
+same kind of header, and `false_outdated_warning_on_current` is the control against a model
+that always warns.
+
+## Pairs (as built in v0.1)
+For each lineage, the old version is the one in force on `test_cutoff` (test parts) or
+`history_start` (train and dev parts), and the new version is the one in force on `as_of`.
+Questions currently come from definition changes: a term that was redefined, or a term that
+was dropped.
+
 ## Gold
 `superseded` = `SupersededLabel` (diff_id, from/to section ids and dates, changed paragraph
 paths, change_type).

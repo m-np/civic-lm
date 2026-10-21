@@ -10,7 +10,9 @@ relevant but do not contain the answer:
    first), excluding G and its renumbering partners. These score high on BM25 for Q.
 2. **Cross-reference stubs:** for definition questions, a section that only refers to the
    term ("is defined at § 122.23") without defining it.
-3. 2–4 passages per item.
+3. For definition questions (v0.1 build): the same definitions section with the defining
+   paragraph removed (the closest near-miss), plus one neighbor section.
+4. 1–4 passages per item.
 
 Leakage guard: no supplied passage may contain the gold `answer_span`, or for templates the
 definition text. Any candidate whose token-F1 with the gold answer is above 0.5 is dropped.

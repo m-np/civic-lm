@@ -142,3 +142,24 @@ def test_double_letter_labels():
     for lab in ["y", "z", "aa", "bb"]:
         assert s.push(lab, False)
     assert s.path() == "(bb)"
+
+
+def test_defined_term_forms():
+    from civic_data.normalize import _DEFINED_TERM
+    for xml, term in [("<I>Act</I> means x", "Act"), ("(a) <I>Act</I> means x", "Act"),
+                      ("(e) <I>Design history file</I> (DHF) means x", "Design history file"),
+                      ("“<I>Batch or lot</I>” means x", "Batch or lot")]:
+        assert _DEFINED_TERM.match(xml).group(1) == term
+    assert _DEFINED_TERM.match("(a) The Administrator shall") is None
+
+
+def test_labels_after_plain_heading():
+    assert split_paragraph_labels("(m) Bypass—(1) Definitions. (i) Bypass means") == [
+        ("m", False), ("1", False), ("i", False)]
+    # a reference inside running text is not a label
+    assert split_paragraph_labels("(b) The permittee must comply with paragraph (a) of this section") == [("b", False)]
+
+
+def test_labels_after_italic_heading_and_dash():
+    assert split_paragraph_labels("(m) <I>Bypass</I>—(1) <I>Definitions.</I> (i) <I>Bypass</I> means") == [
+        ("m", False), ("1", False), ("i", False)]

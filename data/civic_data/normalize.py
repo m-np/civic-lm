@@ -36,10 +36,15 @@ _LABEL = r"(?:[a-z]{1,2}|[ivxlc]{1,7}|[A-Z]{1,2}|\d{1,3})"
 _LEAD_LABELS = re.compile(rf"^\s*((?:\((?:<I>)?{_LABEL}(?:</I>)?\)\s*)+)")
 _ONE_LABEL = re.compile(rf"\((<I>)?({_LABEL})(</I>)?\)")
 # An italic paragraph heading ("<I>Duty to apply.</I>") followed directly by another label.
-_HEADING_THEN_LABEL = re.compile(rf"^(\s*<I>[^<]{{2,200}}</I>\s*)\((?:<I>)?{_LABEL}(?:</I>)?\)")
+# A short paragraph heading followed directly by another label: italic ("<I>Duty to apply.</I> (1)")
+# or plain text ending in "." / "—" / ":" ("Bypass—(1) Definitions. (i) ...").
+_HEADING_THEN_LABEL = re.compile(
+    rf"^(\s*(?:<I>[^<]{{2,200}}</I>\s*[.—:]?|[^()<]{{1,80}}?[.—:])\s*)\((?:<I>)?{_LABEL}(?:</I>)?\)")
 _ROMAN = re.compile(r"^(?=[ivxlcdm]+$)m{0,3}(cm|cd|d?c{0,3})(xc|xl|l?x{0,3})(ix|iv|v?i{0,3})$")
+# "<I>Term</I> means", also after labels "(a) <I>Act</I> means" or in quotes "“<I>Batch</I>” means".
 _DEFINED_TERM = re.compile(
-    r"^\s*<I>([^<]{1,120})</I>\s*(?:\([^)]*\)\s*)?(means|is defined|includes|has the meaning|refers to)")
+    r"^\s*(?:\((?:<I>)?\w{1,6}(?:</I>)?\)\s*)*[“\"]?\s*<I>([^<]{1,120})</I>\s*[”\"]?\s*(?:\([^)]*\)\s*)?"
+    r"(?:means|is defined|includes|has the meaning|refers to)")
 
 
 class ParseCheckError(ValueError):

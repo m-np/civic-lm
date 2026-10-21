@@ -17,7 +17,9 @@ dependencies = [
 [project.optional-dependencies]
 data = ["requests>=2.31", "lxml>=5", "huggingface_hub>=0.23"]
 bench = ["bm25s>=0.2", "datasketch>=1.6"]
-eval = ["rouge-score>=0.1.2", "openai>=1.30", "anthropic>=0.30"]
+eval = ["rouge-score>=0.1.2", "transformers>=4.44", "torch>=2.3", "accelerate>=0.33", "requests>=2.31"]
+# GPU runs: vLLM offline engine (open-weight models only)
+vllm = ["vllm>=0.6"]
 train = ["torch", "transformers", "peft", "trl", "datasets"]
 dev = ["pytest>=8", "import-linter>=2", "ruff>=0.5", "dvc>=3"]
 
@@ -60,3 +62,6 @@ modules = ["civic_eval", "civic_train"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP"]
 ignore = ["UP017"]
+
+[tool.ruff.lint.per-file-ignores]
+"eval/civic_eval/prompts.py" = ["E501"]  # prompt text is kept verbatim

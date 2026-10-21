@@ -51,3 +51,26 @@ titles:
     test:  ["60", "63"]
     dev:   ["268"]
     train: ["122", "141", "261", "262"]
+
+# How questions refer to a part without naming its number (no citation leakage).
+part_topics:
+  "21:73": "FDA color additive listing rules"
+  "21:101": "FDA food labeling rules"
+  "21:112": "FDA produce safety rules"
+  "21:172": "FDA food additive rules"
+  "21:312": "FDA investigational new drug rules"
+  "21:314": "FDA new drug application rules"
+  "21:820": "FDA medical device quality system rules"
+  "29:541": "Labor Department overtime exemption rules for executive, administrative and professional employees"
+  "29:778": "Labor Department overtime compensation rules"
+  "29:825": "Family and Medical Leave Act regulations"
+  "29:1904": "OSHA injury and illness recordkeeping rules"
+  "29:2510": "ERISA definitions regulations"
+  "29:2550": "ERISA fiduciary responsibility rules"
+  "40:60": "EPA new source performance standards"
+  "40:63": "EPA hazardous air pollutant standards for source categories"
+  "40:122": "EPA NPDES permit program rules"
+  "40:141": "EPA national primary drinking water rules"
+  "40:261": "EPA hazardous waste identification rules"
+  "40:262": "EPA hazardous waste generator rules"
+  "40:268": "EPA land disposal restriction rules"

@@ -54,8 +54,21 @@ the raw text, with whitespace removed.
 
 The test parts were chosen because they have post-cutoff amendments.
 
+## Benchmarking
+
+See [docs/BENCHMARKING.md](docs/BENCHMARKING.md) for the full guide: build a release, run
+open-weight models (transformers, vLLM or Ollama), and score and compare the results.
+
+```bash
+make bench RELEASE=sample
+make run   RELEASE=sample MODEL=qwen2.5-1.5b TIER=engineered
+make report RELEASE=sample
+```
+
 ## Status (2026-10-20)
 
-Stages 1–3 are implemented and run on real data, and the schema and all generator specs are
-written (`bench/specs/`). Generators, validation, the harness and training are next. See the
-timeline in the plan doc.
+- Stages 1–3 run on real data.
+- Template generators (definition QA, abstention, closed-book, superseded) and the eval
+  harness (two prompt tiers, automatic scoring, report) work end to end on a 50-item sample.
+- Next: LLM-written questions, validation and dedupe checks, the LLM judge, the full ingest
+  and the 200-item pilot.
