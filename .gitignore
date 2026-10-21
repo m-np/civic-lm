@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.env
+
+# large artifacts: tracked by DVC, not git
+/data/raw/*
+/data/interim/*
+/data/processed/*
+/bench/releases/*
+/eval/runs/*
+!**/.gitkeep

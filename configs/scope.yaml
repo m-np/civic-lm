@@ -1,0 +1,53 @@
+# Single source of truth for what the pipeline ingests and how it splits.
+# Changing anything here changes the dataset version; bump `dataset_version`.
+dataset_version: "0.1.0-pilot"
+
+# Pinned "now". Every snapshot and "current rule" is resolved against this date,
+# never against today's date, so rebuilds are reproducible.
+as_of: "2026-10-19"
+
+# Version history kept from this date on (older versions collapse into one baseline).
+history_start: "2023-01-01"
+
+# Split by time: test items come from amendments effective on or after this date.
+# Set to the latest training cutoff among the evaluated base models.
+test_cutoff: "2025-07-01"
+
+sources:
+  ecfr:
+    base_url: "https://www.ecfr.gov/api/versioner/v1"
+    license: "Public domain (17 U.S.C. 105)"
+  fedreg:
+    base_url: "https://www.federalregister.gov/api/v1"
+    license: "Public domain (17 U.S.C. 105)"
+  hf:
+    billsum:
+      repo: "FiscalNote/billsum"
+      revision: "3d8510441c06a3d9dfb32eb0d7f80151730bcc4f"
+      license: "cc0-1.0"
+    govreport:
+      repo: "launch/gov_report"
+      revision: "32feeaede49fed993aef070bc4da09263fd0429a"
+      license: "cc-by-4.0"
+
+http:
+  min_interval_s: 0.5   # polite rate limit between requests
+  retries: 4
+  timeout_s: 120
+
+# Split by structure: whole CFR parts are assigned to a split, never rows.
+# Test parts were chosen because they have substantive amendments after test_cutoff
+# (counts from the versioner API on 2026-10-20), which the time split needs.
+titles:
+  "21":   # Food and Drugs (FDA, DEA)
+    test:  ["820", "312", "314"]   # 820: QMSR rewrite effective 2026-02-02 (36 sections)
+    dev:   ["73"]
+    train: ["101", "112", "172"]
+  "29":   # Labor
+    test:  ["541", "2550"]         # 541: 12 sections amended 2026-05-15
+    dev:   ["2510"]
+    train: ["778", "825", "1904"]
+  "40":   # Protection of Environment (EPA)
+    test:  ["60", "63"]
+    dev:   ["268"]
+    train: ["122", "141", "261", "262"]

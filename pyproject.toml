@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "civic-lm"
+version = "0.1.0"
+description = "Grounded-citation benchmark and fine-tuning for governance LLMs, built from the eCFR."
+requires-python = ">=3.11"
+dependencies = [
+  "pydantic>=2.6",
+  "pyyaml>=6",
+  "pandas>=2.1",
+  "pyarrow>=14",
+]
+
+[project.optional-dependencies]
+data = ["requests>=2.31", "lxml>=5", "huggingface_hub>=0.23"]
+bench = ["bm25s>=0.2", "datasketch>=1.6"]
+eval = ["rouge-score>=0.1.2", "openai>=1.30", "anthropic>=0.30"]
+train = ["torch", "transformers", "peft", "trl", "datasets"]
+dev = ["pytest>=8", "import-linter>=2", "ruff>=0.5", "dvc>=3"]
+
+[tool.setuptools.packages.find]
+where = ["data", "bench", "eval", "train"]
+include = ["civic_*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.importlinter]
+root_packages = ["civic_data", "civic_bench", "civic_eval", "civic_train"]
+
+[[tool.importlinter.contracts]]
+name = "data is upstream of everything"
+type = "forbidden"
+source_modules = ["civic_data"]
+forbidden_modules = ["civic_bench", "civic_eval", "civic_train"]
+
+[[tool.importlinter.contracts]]
+name = "bench does not depend on eval or train"
+type = "forbidden"
+source_modules = ["civic_bench"]
+forbidden_modules = ["civic_eval", "civic_train"]
+
+[[tool.importlinter.contracts]]
+name = "eval and train only see bench (via files and schema), never data"
+type = "forbidden"
+source_modules = ["civic_eval", "civic_train"]
+forbidden_modules = ["civic_data"]
+
+[[tool.importlinter.contracts]]
+name = "eval and train are independent"
+type = "independence"
+modules = ["civic_eval", "civic_train"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = ["UP017"]
