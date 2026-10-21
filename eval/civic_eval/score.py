@@ -158,9 +158,10 @@ def score_run(run: Path, release: Path | None = None) -> dict:
     items = {i.item_id: i for i in (Item.model_validate_json(x) for x in open(release / "items.jsonl"))}
     valid = set(json.loads((release / "valid_sections.json").read_text()))
     scoped = {s.split(".")[0].replace(" CFR ", ":") for s in valid}
+    from .run import load_outputs
+
     rows = []
-    for line in open(run / "outputs.jsonl"):
-        o = json.loads(line)
+    for o in load_outputs(run):
         rows.append({**score_item(items[o["item_id"]], parse_output(o["output"]), valid, scoped),
                      "latency_s": o["latency_s"]})
     with open(run / "scored.jsonl", "w") as f:

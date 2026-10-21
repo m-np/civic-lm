@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from civic_bench.schema import Item
 
-PROMPT_VERSION = "0.1"
+PROMPT_VERSION = "0.2"  # 0.2: closed-book items get their own instructions
 TIERS = ("naive", "engineered")
 
 JSON_FORMAT = ('{"answer": string or null, "citations": [list of "<title> CFR <section>" strings], '
@@ -50,6 +50,14 @@ Question (rule in force on 2026-10-19): Under the fictional storage rules, how s
 ]
 
 
+CLOSED_BOOK_SYSTEM = f"""You answer questions about U.S. federal regulations from your own knowledge. No passages are provided.
+
+Rules:
+1. Answer if you know the rule. Cite the section you rely on as "<title> CFR <section>". Do not invent section numbers.
+2. If you do not know, set "abstain": true, "answer": null, "citations": [].
+3. Reply with one JSON object only, in this format: {JSON_FORMAT}"""
+
+
 def render_passages(item: Item, validity: dict) -> str:
     lines = []
     for p in item.passages:
@@ -62,14 +70,19 @@ def render_passages(item: Item, validity: dict) -> str:
     return "\n".join(lines)
 
 
+def prompt_sha(messages: list[dict]) -> str:
+    import hashlib
+    import json
+    return hashlib.sha256(json.dumps(messages, sort_keys=True, ensure_ascii=False).encode()).hexdigest()[:16]
+
+
 def build_messages(item: Item, tier: str, validity: dict) -> list[dict]:
     if tier not in TIERS:
         raise ValueError(f"unknown tier {tier!r}")
     q = f"Question (rule in force on {item.as_of}): {item.question}"
-    if item.passages:
-        body = f"Passages:\n{render_passages(item, validity)}\n\n{q}"
-    else:
-        body = f"No passages are provided. Answer from what you know.\n\n{q}"
+    if not item.passages:  # closed-book control: same instructions in both tiers
+        return [{"role": "system", "content": CLOSED_BOOK_SYSTEM}, {"role": "user", "content": q}]
+    body = f"Passages:\n{render_passages(item, validity)}\n\n{q}"
     if tier == "naive":
         return [{"role": "user", "content":
                  f"{body}\n\nAnswer using the passages and reply with JSON only: {JSON_FORMAT}"}]

@@ -114,6 +114,10 @@ The answer metric is currently token-F1, which can be fooled by paraphrase. The 
 judge, built from an open model different from any question writer and calibrated on about
 150 human labels, will replace it for answer quality.
 
+Read `superseded` accuracy together with `false_outdated_warning_on_current`. A model that
+warns on every passage scores 1.0 on superseded and is still wrong. A worked example is in
+[sample_results.md](sample_results.md).
+
 ### Reading the results: the headroom gate
 
 The report is the headroom check from the plan. For each task:

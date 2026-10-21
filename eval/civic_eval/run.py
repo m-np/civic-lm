@@ -5,7 +5,8 @@
 Output: eval/runs/<release>/<model>__<tier>/
   run.json        model id + revision, backend, generation settings, release hash, prompt version
   outputs.jsonl   one row per item: messages, raw output, tokens, latency
-Re-running resumes: items already in outputs.jsonl are skipped.
+Re-running resumes: an item is skipped if outputs.jsonl already has it with the same prompt
+(prompt_sha). If the prompt changed, the item runs again and the newer row wins.
 """
 from __future__ import annotations
 
@@ -19,7 +20,7 @@ import yaml
 from civic_bench.schema import Item
 
 from .backends import BACKENDS
-from .prompts import PROMPT_VERSION, TIERS, build_messages
+from .prompts import PROMPT_VERSION, TIERS, build_messages, prompt_sha
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -28,6 +29,18 @@ def load_release(path: Path) -> tuple[list[Item], dict, dict]:
     items = [Item.model_validate_json(line) for line in open(path / "items.jsonl")]
     return items, json.loads((path / "passage_validity.json").read_text()), \
         json.loads((path / "MANIFEST.json").read_text())
+
+
+def load_outputs(run: Path) -> list[dict]:
+    """Rows of outputs.jsonl, last row per item (a re-run after a prompt change wins)."""
+    p = run / "outputs.jsonl"
+    if not p.exists():
+        return []
+    rows = {}
+    for line in open(p):
+        r = json.loads(line)
+        rows[r["item_id"]] = r
+    return list(rows.values())
 
 
 def run_dir(release: Path, model_key: str, tier: str) -> Path:
@@ -59,10 +72,8 @@ def main(argv: list[str] | None = None) -> None:
             "started_at": datetime.now(UTC).isoformat(timespec="seconds")}
     (out / "run.json").write_text(json.dumps(meta, indent=2) + "\n")
 
-    done = set()
-    if (out / "outputs.jsonl").exists():
-        done = {json.loads(line)["item_id"] for line in open(out / "outputs.jsonl")}
-    todo = [i for i in items if i.item_id not in done]
+    done = {r["item_id"]: r.get("prompt_sha") for r in load_outputs(out)}
+    todo = [i for i in items if done.get(i.item_id) != prompt_sha(build_messages(i, args.tier, validity))]
     print(f"{args.model}/{args.tier}: {len(todo)} to run ({len(done)} already done)", flush=True)
     if not todo:
         return
@@ -72,7 +83,8 @@ def main(argv: list[str] | None = None) -> None:
         for n, item in enumerate(todo, 1):
             msgs = build_messages(item, args.tier, validity)
             g = backend.generate(msgs)
-            f.write(json.dumps({"item_id": item.item_id, "messages": msgs, "output": g.text,
+            f.write(json.dumps({"item_id": item.item_id, "prompt_version": PROMPT_VERSION,
+                                "prompt_sha": prompt_sha(msgs), "messages": msgs, "output": g.text,
                                 "prompt_tokens": g.prompt_tokens, "completion_tokens": g.completion_tokens,
                                 "latency_s": round(g.latency_s, 3)}, ensure_ascii=False) + "\n")
             f.flush()
